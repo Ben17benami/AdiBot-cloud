@@ -1,0 +1,8 @@
+{
+  "name": "robot-web",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "mqtt": "^4.3.8"
+  }
+}

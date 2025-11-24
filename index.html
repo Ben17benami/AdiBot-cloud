@@ -1,0 +1,66 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ask Your Robot</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #0f1720;
+      --accent: #06b6d4;
+      --muted: #99a3ad;
+      --text: #eef2f7;
+    }
+    html, body { height:100%; margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#020617 0%, #071226 100%); color:var(--text) }
+    .wrap{ max-width:760px; margin:28px auto; padding:18px; }
+    .card{ background:var(--card); border-radius:14px; padding:20px; box-shadow:0 10px 30px rgba(2,6,23,0.6); border:1px solid rgba(255,255,255,0.02) }
+    textarea{ width:100%; min-height:110px; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.04); background:#06111a; color:var(--text); resize:vertical; font-size:16px }
+    .row{ display:flex; gap:12px; align-items:center; margin-top:12px }
+    .btn{ background:linear-gradient(90deg,var(--accent),#0ea5a8); color:#022; padding:12px 16px; border-radius:10px; border:0; font-weight:700; cursor:pointer }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Ask Your Robot</h1>
+      <p class="lead">Type a question and send it to your robot. Works on phone or desktop.</p>
+      <textarea id="q" placeholder="Ask something short..."></textarea>
+      <div class="row">
+        <button id="sendBtn" class="btn">Send to Robot</button>
+      </div>
+      <footer style="margin-top:14px;color:var(--muted);font-size:13px;text-align:center">Connected to your robot via MQTT proxy</footer>
+    </div>
+  </div>
+
+  <script>
+    async function sendQuestion(q) {
+      try {
+        const resp = await fetch("api/ask", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: q })
+        });
+        const j = await resp.json();
+        if (j.ok) alert("Your question was sent to your robot!");
+        else alert("Server error: " + (j.error || "unknown"));
+      } catch (err) {
+        alert("Network error: " + err.message);
+      }
+    }
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+      const q = document.getElementById("q").value.trim();
+      if (!q) return alert("Please type a question");
+      sendQuestion(q);
+    });
+
+    document.getElementById("q").addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" && !ev.shiftKey) {
+        ev.preventDefault();
+        document.getElementById("sendBtn").click();
+      }
+    });
+  </script>
+</body>
+</html>
