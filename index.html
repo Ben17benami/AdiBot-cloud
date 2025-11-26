@@ -4,11 +4,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ADIBOT</title>
-  <!-- קישור לקובץ CSS חיצוני -->
+
+  <!-- CSS חיצוני -->
   <link rel="stylesheet" href="styles.css" />
-  <link rel="icon" type="image/png" href="adibot-icon64.png" />
+
+  <!-- Favicon לשורת הכותרת בדפדפן -->
+  <link rel="icon" type="image/png" sizes="32x32" href="adibot-icon32.png" />
+  <link rel="icon" type="image/png" sizes="64x64" href="adibot-icon64.png" />
+  <link rel="shortcut icon" href="adibot-icon32.png" />
+
+  <!-- PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f2c200">
+
+  <!-- iOS -->
+  <link rel="apple-touch-icon" sizes="192x192" href="adibot-icon192.png">
+  <meta name="apple-mobile-web-app-title" content="ADIBOT">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   <div class="wrap">
@@ -27,7 +40,7 @@
   <script>
     async function sendQuestion(q) {
       try {
-        const resp = await fetch("api/ask", {
+        const resp = await fetch("/api/ask", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ question: q })
