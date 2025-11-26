@@ -9,7 +9,6 @@ export default async function handler(req, res) {
   if (!q) {
     return res.status(400).json({ ok: false, error: "Missing question" });
   }
-
   const MQTT_URL  = process.env.MQTT_URL;
   const MQTT_USER = process.env.MQTT_USER;
   const MQTT_PASS = process.env.MQTT_PASS;
@@ -39,3 +38,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: err.message });
   }
 }
+
