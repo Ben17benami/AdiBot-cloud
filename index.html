@@ -1,70 +1,35 @@
 <!doctype html>
 <html lang="he">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ADIBOT</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ADIBOT</title>
+  
+      <link rel="icon" type="image/png" href="adibot-icon.png"> 
+  
+    <link rel="stylesheet" href="styles.css" />
 
-  <!-- CSS חיצוני -->
-  <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f2c200">
 
-  <!-- Favicon לשורת הכותרת בדפדפן -->
-  <link rel="icon" type="image/png" sizes="32x32" href="adibot-icon32.png" />
-  <link rel="icon" type="image/png" sizes="64x64" href="adibot-icon64.png" />
-  <link rel="shortcut icon" href="adibot-icon32.png" />
-
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#f2c200">
-
-  <!-- iOS -->
-  <link rel="apple-touch-icon" sizes="192x192" href="adibot-icon192.png">
-  <meta name="apple-mobile-web-app-title" content="ADIBOT">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="192x192" href="./icons/adibot-192.png">
+  <meta name="apple-mobile-web-app-title" content="ADIBOT">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <h1>ADIBOT</h1>
-      <p class="lead">Type a question and send it to your robot. Works on phone or desktop.</p>
-      <textarea id="q" placeholder="Ask something short..."></textarea>
-      <div class="row">
-        <button id="sendBtn" class="btn">Send to Robot</button>
-      </div>
-      <footer>Connected to your robot via MQTT proxy</footer>
-    </div>
-  </div>
+  <div class="wrap">
+    <div class="card">
+      <h1>ADIBOT</h1>
+      <p class="lead">Type a question and send it to your robot. Works on phone or desktop.</p>
+      <textarea id="q" placeholder="Ask something short..."></textarea>
+      <div class="row">
+        <button id="sendBtn" class="btn">Send to Robot</button>
+      </div>
+      <footer>Connected to your robot via MQTT proxy</footer>
+    </div>
+  </div>
 
-  <script src="ask.js"></script>
-  <script>
-    async function sendQuestion(q) {
-      try {
-        const resp = await fetch("/api/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question: q })
-        });
-        const j = await resp.json();
-        if (j.ok) alert("ADIBOT says: Your question was sent to your robot!");
-        else alert("ADIBOT says: Server error: " + (j.error || "unknown"));
-      } catch (err) {
-        alert("Network error: " + err.message);
-      }
-    }
-
-    document.getElementById("sendBtn").addEventListener("click", () => {
-      const q = document.getElementById("q").value.trim();
-      if (!q) return alert("Please type a question");
-      sendQuestion(q);
-    });
-
-    document.getElementById("q").addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter" && !ev.shiftKey) {
-        ev.preventDefault();
-        document.getElementById("sendBtn").click();
-      }
-    });
-  </script>
+    <script src="client.js"></script>
 </body>
 </html>
