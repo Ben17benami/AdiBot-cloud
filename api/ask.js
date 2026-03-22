@@ -10,13 +10,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "Missing question" });
   }
 
-  const MQTT_URL = process.env.AMQP_URL; // ✅ תוקן - משתמש ב-AMQP_URL
+  // ✅ credentials מפורשים - לא דרך URL
+  const MQTT_HOST = "stingray.rmq.cloudamqp.com";
+  const MQTT_PORT = 1883;
+  const MQTT_USER = "boxgsipv:boxgsipv";
+  const MQTT_PASS = "HIJGZvijZ7TZ17Cibc7k3BRYusmDTSYG";
 
-  if (!MQTT_URL) {
-    return res.status(500).json({ ok: false, error: "AMQP_URL not configured" });
-  }
-
-  const client = mqtt.connect(MQTT_URL, {
+  const client = mqtt.connect(`mqtt://${MQTT_HOST}`, {
+    port: MQTT_PORT,
+    username: MQTT_USER,
+    password: MQTT_PASS,
     reconnectPeriod: 0,
     connectTimeout: 8000,
   });
@@ -31,8 +34,11 @@ export default async function handler(req, res) {
       client.on("connect", () => {
         clearTimeout(timer);
         client.publish("robot/question", q, { qos: 0 }, (err) => {
-          if (err) reject(err);
-          else resolve();
+          if (err) {
+            reject(err);
+          } else {
+            resolve();
+          }
         });
       });
 
