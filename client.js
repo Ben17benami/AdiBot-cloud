@@ -1,7 +1,9 @@
 // client.js
 
-// ── היסטוריית שיחה בזיכרון ──
 const conversations = [];
+let lastAnswerTs = null;
+let pendingItem = null;
+let isSending = false;
 
 function addToHistory(question) {
   const item = { question, answer: null, pending: true };
@@ -19,8 +21,7 @@ function updateAnswer(item, answer) {
 function renderHistory() {
   const list = document.getElementById("historyList");
   const noHistory = document.getElementById("noHistory");
-
-  if (!list) return; // safety check
+  if (!list) return;
 
   if (conversations.length === 0) {
     if (noHistory) noHistory.style.display = "block";
@@ -50,26 +51,19 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-// ── משיכת תשובה אחת ──
-let lastAnswerTs = null; // שמור timestamp של תשובה אחרונה
-
 async function fetchAnswer(item) {
   try {
-    const resp = await fetch("/api/answer?t=" + Date.now() + "&after=" + questionSentAt);
+    const resp = await fetch("/api/answer?t=" + Date.now());
     if (!resp.ok) return false;
     const j = await resp.json();
-    
+
     console.log("Answer API response:", j);
-    
-    if (j.answer && j.answer.length > 0) { // ✅ התעלם מתשובה ריקה (clear message)
-      // בדוק שה-timestamp של התשובה חדש יותר מזמן שליחת השאלה
-      if (j.ts) {
-        // millis() מהרובוט - לא אמין להשוואת זמן מוחלט
-        // אז פשוט בדוק שזה לא אותו ts שראינו כבר
-        if (j.ts === lastAnswerTs) {
-          console.log("Skipping - same timestamp:", j.ts);
-          return false;
-        }
+
+    if (j.answer && j.answer.length > 0) {
+      // בדוק שזה לא אותו ts שראינו כבר
+      if (j.ts && j.ts === lastAnswerTs) {
+        console.log("Skipping - same timestamp");
+        return false;
       }
       lastAnswerTs = j.ts || null;
       updateAnswer(item, j.answer);
@@ -81,10 +75,6 @@ async function fetchAnswer(item) {
   return false;
 }
 
-// ── שליחת שאלה ──
-let pendingItem = null;
-let isSending = false;
-
 async function sendQuestion(q) {
   if (isSending) return;
   isSending = true;
@@ -95,8 +85,7 @@ async function sendQuestion(q) {
 
   const item = addToHistory(q);
   pendingItem = item;
-  lastAnswerTs = null; // ✅ אפס כדי לקבל תשובה לשאלה החדשה
-  item.sentAt = Date.now(); // ✅ שמור מתי נשלחה השאלה
+  lastAnswerTs = null; // אפס לפני כל שאלה חדשה
 
   try {
     const resp = await fetch("/api/ask", {
@@ -109,7 +98,6 @@ async function sendQuestion(q) {
       updateAnswer(item, "❌ Error: " + (j.error || "unknown"));
       pendingItem = null;
     } else {
-      // המתן קצת ואז נסה למשוך תשובה
       btn.textContent = "Waiting for robot...";
       waitForAnswer(item);
     }
@@ -121,20 +109,15 @@ async function sendQuestion(q) {
   }
 }
 
-// ── המתנה לתשובה ──
 async function waitForAnswer(item) {
-  const questionSentAt = item.sentAt || Date.now();
   const btn = document.getElementById("sendBtn");
   let attempts = 0;
 
   const tryFetch = async () => {
     attempts++;
-
-    // הרובוט צריך זמן לעבד - נתחיל לנסות אחרי 3 שניות
     const got = await fetchAnswer(item);
 
     if (got) {
-      // קיבלנו תשובה!
       pendingItem = null;
       btn.disabled = false;
       btn.textContent = "Send to Robot";
@@ -142,7 +125,6 @@ async function waitForAnswer(item) {
     }
 
     if (attempts >= 45) {
-      // timeout אחרי ~45 שניות
       updateAnswer(item, "⚠️ No response (timeout). Check your robot.");
       pendingItem = null;
       btn.disabled = false;
@@ -150,15 +132,13 @@ async function waitForAnswer(item) {
       return;
     }
 
-    // נסה שוב אחרי שנייה
     setTimeout(tryFetch, 1000);
   };
 
-  // התחל אחרי 3 שניות (זמן עיבוד הרובוט)
+  // התחל אחרי 3 שניות
   setTimeout(tryFetch, 3000);
 }
 
-// ── Event Listeners ──
 document.addEventListener("DOMContentLoaded", () => {
   renderHistory();
 
