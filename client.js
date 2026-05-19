@@ -51,7 +51,7 @@ function escapeHtml(str) {
 }
 
 // ── משיכת תשובה אחת ──
-let lastAnswerQuestion = null; // שמור שאלה אחרונה שכבר קיבלנו תשובה עליה
+let lastAnswerTs = null; // שמור timestamp של תשובה אחרונה
 
 async function fetchAnswer(item) {
   try {
@@ -62,12 +62,12 @@ async function fetchAnswer(item) {
     console.log("Answer API response:", j);
     
     if (j.answer) {
-      // בדוק שזו לא אותה תשובה שכבר הצגנו
-      if (j.question && j.question === lastAnswerQuestion) {
-        console.log("Skipping - same as last answer");
+      // בדוק לפי timestamp שזו תשובה חדשה
+      if (j.ts && j.ts === lastAnswerTs) {
+        console.log("Skipping - same timestamp:", j.ts);
         return false;
       }
-      lastAnswerQuestion = j.question;
+      lastAnswerTs = j.ts || null;
       updateAnswer(item, j.answer);
       return true;
     }
@@ -91,7 +91,7 @@ async function sendQuestion(q) {
 
   const item = addToHistory(q);
   pendingItem = item;
-  lastAnswerQuestion = null; // ✅ אפס כדי לקבל תשובה לשאלה החדשה
+  lastAnswerTs = null; // ✅ אפס כדי לקבל תשובה לשאלה החדשה
 
   try {
     const resp = await fetch("/api/ask", {
