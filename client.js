@@ -62,15 +62,9 @@ async function fetchAnswer(item) {
     console.log("Answer API response:", j);
     
     if (j.answer) {
-      // בדוק שזו תשובה לשאלה הנוכחית ולא retained ישן
+      // בדוק שזו לא אותה תשובה שכבר הצגנו
       if (j.question && j.question === lastAnswerQuestion) {
         console.log("Skipping - same as last answer");
-        return false;
-      }
-      // בדוק שהתשובה היא לשאלה הנוכחית
-      if (j.question && item.question && 
-          !j.question.toLowerCase().includes(item.question.toLowerCase().substring(0, 10))) {
-        console.log("Skipping - answer is for different question");
         return false;
       }
       lastAnswerQuestion = j.question;
@@ -97,6 +91,7 @@ async function sendQuestion(q) {
 
   const item = addToHistory(q);
   pendingItem = item;
+  lastAnswerQuestion = null; // ✅ אפס כדי לקבל תשובה לשאלה החדשה
 
   try {
     const resp = await fetch("/api/ask", {
