@@ -135,8 +135,8 @@ async function waitForAnswer(item) {
     setTimeout(tryFetch, 1000);
   };
 
-  // התחל אחרי 3 שניות
-  setTimeout(tryFetch, 3000);
+  // התחל אחרי שנייה אחת
+  setTimeout(tryFetch, 1000);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
