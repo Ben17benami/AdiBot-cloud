@@ -24,7 +24,7 @@ export default async function handler(req, res) {
     const globalTimer = setTimeout(() => {
       client.end(true);
       resolve(null);
-    }, 6000);
+    }, 18000);
 
     client.on("connect", () => {
       // subscribe ל-robot/answer - retained message יגיע מיד
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
           clearTimeout(globalTimer);
           client.end(true);
           resolve(null);
-        }, 2000);
+        }, 15000); // המתן עד 15 שניות לתשובה
       });
     });
 
