@@ -55,17 +55,21 @@ let lastAnswerTs = null; // שמור timestamp של תשובה אחרונה
 
 async function fetchAnswer(item) {
   try {
-    const resp = await fetch("/api/answer?t=" + Date.now());
+    const resp = await fetch("/api/answer?t=" + Date.now() + "&after=" + questionSentAt);
     if (!resp.ok) return false;
     const j = await resp.json();
     
     console.log("Answer API response:", j);
     
     if (j.answer && j.answer.length > 0) { // ✅ התעלם מתשובה ריקה (clear message)
-      // בדוק לפי timestamp שזו תשובה חדשה
-      if (j.ts && j.ts === lastAnswerTs) {
-        console.log("Skipping - same timestamp:", j.ts);
-        return false;
+      // בדוק שה-timestamp של התשובה חדש יותר מזמן שליחת השאלה
+      if (j.ts) {
+        // millis() מהרובוט - לא אמין להשוואת זמן מוחלט
+        // אז פשוט בדוק שזה לא אותו ts שראינו כבר
+        if (j.ts === lastAnswerTs) {
+          console.log("Skipping - same timestamp:", j.ts);
+          return false;
+        }
       }
       lastAnswerTs = j.ts || null;
       updateAnswer(item, j.answer);
@@ -92,6 +96,7 @@ async function sendQuestion(q) {
   const item = addToHistory(q);
   pendingItem = item;
   lastAnswerTs = null; // ✅ אפס כדי לקבל תשובה לשאלה החדשה
+  item.sentAt = Date.now(); // ✅ שמור מתי נשלחה השאלה
 
   try {
     const resp = await fetch("/api/ask", {
@@ -118,6 +123,7 @@ async function sendQuestion(q) {
 
 // ── המתנה לתשובה ──
 async function waitForAnswer(item) {
+  const questionSentAt = item.sentAt || Date.now();
   const btn = document.getElementById("sendBtn");
   let attempts = 0;
 
