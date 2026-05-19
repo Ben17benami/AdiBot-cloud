@@ -49,16 +49,29 @@ function escapeHtml(str) {
 }
 
 // ── משיכת תשובה אחת ──
+let lastAnswerQuestion = null; // שמור שאלה אחרונה שכבר קיבלנו תשובה עליה
+
 async function fetchAnswer(item) {
   try {
     const resp = await fetch("/api/answer?t=" + Date.now());
     if (!resp.ok) return false;
     const j = await resp.json();
+    
+    console.log("Answer API response:", j);
+    
     if (j.answer) {
+      // בדוק שזו תשובה לשאלה הנוכחית ולא retained ישן
+      if (j.question && j.question === lastAnswerQuestion) {
+        console.log("Skipping - same as last answer");
+        return false;
+      }
+      lastAnswerQuestion = j.question;
       updateAnswer(item, j.answer);
       return true;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.log("fetchAnswer error:", e);
+  }
   return false;
 }
 
