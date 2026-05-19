@@ -61,7 +61,7 @@ async function fetchAnswer(item) {
     
     console.log("Answer API response:", j);
     
-    if (j.answer) {
+    if (j.answer && j.answer.length > 0) { // ✅ התעלם מתשובה ריקה (clear message)
       // בדוק לפי timestamp שזו תשובה חדשה
       if (j.ts && j.ts === lastAnswerTs) {
         console.log("Skipping - same timestamp:", j.ts);
