@@ -51,7 +51,7 @@ function escapeHtml(str) {
 // ── משיכת תשובה אחת ──
 async function fetchAnswer(item) {
   try {
-    const resp = await fetch("/api/answer");
+    const resp = await fetch("/api/answer?t=" + Date.now());
     if (!resp.ok) return false;
     const j = await resp.json();
     if (j.answer) {
