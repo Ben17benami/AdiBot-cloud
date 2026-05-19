@@ -1,9 +1,5 @@
 import mqtt from "mqtt";
 
-// שמור את התשובה האחרונה בזיכרון הפונקציה
-let lastAnswer = null;
-let lastAnswerTime = 0;
-
 export default async function handler(req, res) {
   if (req.method !== "GET") {
     return res.status(405).json({ ok: false, error: "Use GET only" });
@@ -19,54 +15,58 @@ export default async function handler(req, res) {
     username: MQTT_USER,
     password: MQTT_PASS,
     reconnectPeriod: 0,
-    connectTimeout: 8000,
+    connectTimeout: 5000,
+    clean: true,
   });
 
-  const listenPromise = () =>
-    new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        client.end(true);
-        resolve(null); // timeout - אין תשובה
-      }, 5000);
+  const result = await new Promise((resolve) => {
+    // timeout כולל של 6 שניות
+    const globalTimer = setTimeout(() => {
+      client.end(true);
+      resolve(null);
+    }, 6000);
 
-      client.on("connect", () => {
-        client.subscribe("robot/answer", (err) => {
-          if (err) {
-            clearTimeout(timer);
-            client.end(true);
-            reject(err);
-          }
-        });
-      });
-
-      client.on("message", (topic, payload) => {
-        if (topic === "robot/answer") {
-          clearTimeout(timer);
+    client.on("connect", () => {
+      // subscribe ל-robot/answer - retained message יגיע מיד
+      client.subscribe("robot/answer", { qos: 0 }, (err) => {
+        if (err) {
+          clearTimeout(globalTimer);
           client.end(true);
-          try {
-            const data = JSON.parse(payload.toString());
-            resolve(data);
-          } catch (e) {
-            resolve({ answer: payload.toString() });
-          }
+          resolve(null);
         }
-      });
-
-      client.on("error", (err) => {
-        clearTimeout(timer);
-        client.end(true);
-        reject(err);
+        // אם יש retained message - יגיע תוך שנייה
+        // אחרת המתן 2 שניות נוספות
+        setTimeout(() => {
+          clearTimeout(globalTimer);
+          client.end(true);
+          resolve(null);
+        }, 2000);
       });
     });
 
-  try {
-    const data = await listenPromise();
-    if (data) {
-      return res.status(200).json({ ok: true, answer: data.answer, question: data.question });
-    } else {
-      return res.status(200).json({ ok: true, answer: null });
-    }
-  } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
+    client.on("message", (topic, payload) => {
+      if (topic === "robot/answer") {
+        clearTimeout(globalTimer);
+        client.end(true);
+        try {
+          const data = JSON.parse(payload.toString());
+          resolve(data);
+        } catch (e) {
+          resolve({ answer: payload.toString() });
+        }
+      }
+    });
+
+    client.on("error", () => {
+      clearTimeout(globalTimer);
+      client.end(true);
+      resolve(null);
+    });
+  });
+
+  if (result && result.answer) {
+    return res.status(200).json({ ok: true, answer: result.answer, question: result.question });
+  } else {
+    return res.status(200).json({ ok: true, answer: null });
   }
 }
