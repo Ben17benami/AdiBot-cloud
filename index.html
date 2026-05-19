@@ -4,19 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>ADIBOT</title>
-
-  <!-- CSS -->
   <link rel="stylesheet" href="/styles.css" />
-
-  <!-- Favicon – קובץ אחד: adibot-icon.png -->
   <link rel="icon" type="image/png" href="/adibot-icon.png" />
   <link rel="shortcut icon" href="/adibot-icon.png" />
-
-  <!-- PWA / manifest -->
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#f2c200">
-
-  <!-- iOS -->
   <link rel="apple-touch-icon" href="/adibot-icon.png">
   <meta name="apple-mobile-web-app-title" content="ADIBOT">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,13 +24,17 @@
         <button id="sendBtn" class="btn">Send to Robot</button>
       </div>
       <footer>Connected to your robot via MQTT proxy</footer>
+
+      <!-- היסטוריית שיחה -->
+      <div class="history-section">
+        <div class="history-title">💬 Conversation History</div>
+        <div class="history-list" id="historyList">
+          <div class="no-history" id="noHistory">No conversations yet</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <script src="/client.js"></script>
 </body>
 </html>
-
-
-
-
