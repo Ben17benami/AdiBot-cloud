@@ -106,3 +106,105 @@ footer {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* ── היסטוריית שיחה ── */
+.history-section {
+  margin-top: 28px;
+  width: 100%;
+  text-align: left;
+}
+
+.history-title {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.history-list::-webkit-scrollbar {
+  width: 4px;
+}
+.history-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.history-list::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.history-item {
+  background: #06111a;
+  border-radius: 12px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.history-item:hover {
+  background: #0a1a28;
+}
+
+.history-item .q {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-item .a {
+  color: var(--muted);
+  font-size: 0.85rem;
+  display: none;
+  margin-top: 10px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  border-top: 1px solid rgba(255,255,255,0.05);
+  padding-top: 10px;
+}
+
+.history-item.open .a {
+  display: block;
+}
+
+.history-item .status {
+  font-size: 0.72rem;
+  color: #555;
+  margin-top: 5px;
+}
+
+.no-history {
+  color: #444;
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 20px;
+}
+
+.waiting-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #000;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 2px 8px;
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
