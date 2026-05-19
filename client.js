@@ -20,11 +20,13 @@ function renderHistory() {
   const list = document.getElementById("historyList");
   const noHistory = document.getElementById("noHistory");
 
+  if (!list) return; // safety check
+
   if (conversations.length === 0) {
-    noHistory.style.display = "block";
+    if (noHistory) noHistory.style.display = "block";
     return;
   }
-  noHistory.style.display = "none";
+  if (noHistory) noHistory.style.display = "none";
   list.innerHTML = "";
 
   conversations.forEach((conv) => {
@@ -63,6 +65,12 @@ async function fetchAnswer(item) {
       // בדוק שזו תשובה לשאלה הנוכחית ולא retained ישן
       if (j.question && j.question === lastAnswerQuestion) {
         console.log("Skipping - same as last answer");
+        return false;
+      }
+      // בדוק שהתשובה היא לשאלה הנוכחית
+      if (j.question && item.question && 
+          !j.question.toLowerCase().includes(item.question.toLowerCase().substring(0, 10))) {
+        console.log("Skipping - answer is for different question");
         return false;
       }
       lastAnswerQuestion = j.question;
