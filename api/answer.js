@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     const globalTimer = setTimeout(() => {
       client.end(true);
       resolve(null);
-    }, 6000);
+    }, 13000);
 
     client.on("connect", () => {
       client.subscribe("robot/answer", { qos: 0 }, (err) => {
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
           clearTimeout(globalTimer);
           client.end(true);
           resolve(null);
-        }, 2000);
+        }, 10000);
       });
     });
 
