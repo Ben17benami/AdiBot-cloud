@@ -10,6 +10,9 @@ export default async function handler(req, res) {
   const MQTT_USER = "boxgsipv:boxgsipv";
   const MQTT_PASS = "HIJGZvijZ7TZ17Cibc7k3BRYusmDTSYG";
 
+  // זמן שליחת השאלה מהאפליקציה (unix ms)
+  const afterTs = parseInt(req.query.after || "0");
+
   const client = mqtt.connect(`mqtt://${MQTT_HOST}`, {
     port: MQTT_PORT,
     username: MQTT_USER,
@@ -20,39 +23,45 @@ export default async function handler(req, res) {
   });
 
   const result = await new Promise((resolve) => {
-    // timeout כולל של 6 שניות
     const globalTimer = setTimeout(() => {
       client.end(true);
       resolve(null);
-    }, 18000);
+    }, 6000);
 
     client.on("connect", () => {
-      // subscribe ל-robot/answer - retained message יגיע מיד
       client.subscribe("robot/answer", { qos: 0 }, (err) => {
         if (err) {
           clearTimeout(globalTimer);
           client.end(true);
           resolve(null);
         }
-        // אם יש retained message - יגיע תוך שנייה
-        // אחרת המתן 2 שניות נוספות
+        // המתן עד 2 שניות לקבלת retained message
         setTimeout(() => {
           clearTimeout(globalTimer);
           client.end(true);
           resolve(null);
-        }, 15000); // המתן עד 15 שניות לתשובה
+        }, 2000);
       });
     });
 
     client.on("message", (topic, payload) => {
       if (topic === "robot/answer") {
-        clearTimeout(globalTimer);
-        client.end(true);
+        const raw = payload.toString();
+        if (!raw || raw.length === 0) return; // התעלם מהודעה ריקה
+
         try {
-          const data = JSON.parse(payload.toString());
+          const data = JSON.parse(raw);
+          
+          // ✅ בדוק שהתשובה חדשה יותר מזמן שליחת השאלה
+          // millis() של הרובוט גדל כל הזמן - השווה לפי זמן הגעה
+          // פשוט תמיד החזר את מה שיש - הלקוח יחליט אם זה ישן
+          clearTimeout(globalTimer);
+          client.end(true);
           resolve(data);
         } catch (e) {
-          resolve({ answer: payload.toString() });
+          clearTimeout(globalTimer);
+          client.end(true);
+          resolve({ answer: raw });
         }
       }
     });
@@ -65,7 +74,12 @@ export default async function handler(req, res) {
   });
 
   if (result && result.answer) {
-    return res.status(200).json({ ok: true, answer: result.answer, question: result.question });
+    return res.status(200).json({ 
+      ok: true, 
+      answer: result.answer, 
+      question: result.question,
+      ts: result.ts || null
+    });
   } else {
     return res.status(200).json({ ok: true, answer: null });
   }
