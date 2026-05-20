@@ -51,18 +51,30 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;");
 }
 
-async function fetchAnswer(item) {
+// ✅ קרא את ה-ts הנוכחי לפני שליחת השאלה
+async function getCurrentTs() {
+  try {
+    const resp = await fetch("/api/answer?t=" + Date.now());
+    if (!resp.ok) return null;
+    const j = await resp.json();
+    return j.ts || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function fetchAnswer(item, oldTs) {
   try {
     const resp = await fetch("/api/answer?t=" + Date.now());
     if (!resp.ok) return false;
     const j = await resp.json();
 
-    console.log("Answer API response:", j);
+    console.log("Answer API response:", j, "oldTs:", oldTs);
 
     if (j.answer && j.answer.length > 0) {
-      // בדוק שזה לא אותו ts שראינו כבר
-      if (j.ts && j.ts === lastAnswerTs) {
-        console.log("Skipping - same timestamp");
+      // ✅ קבל רק תשובה עם ts שונה מהישן
+      if (j.ts && j.ts === oldTs) {
+        console.log("Skipping - same ts as before question was sent");
         return false;
       }
       lastAnswerTs = j.ts || null;
@@ -83,11 +95,15 @@ async function sendQuestion(q) {
   btn.disabled = true;
   btn.textContent = "Sending...";
 
+  // ✅ שלב 1: קרא את ה-ts הנוכחי לפני שליחה
+  const oldTs = await getCurrentTs();
+  console.log("Current ts before question:", oldTs);
+
   const item = addToHistory(q);
   pendingItem = item;
-  lastAnswerTs = null; // אפס לפני כל שאלה חדשה
 
   try {
+    // ✅ שלב 2: שלח את השאלה
     const resp = await fetch("/api/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -97,25 +113,30 @@ async function sendQuestion(q) {
     if (!j.ok) {
       updateAnswer(item, "❌ Error: " + (j.error || "unknown"));
       pendingItem = null;
+      btn.disabled = false;
+      btn.textContent = "Send to Robot";
     } else {
       btn.textContent = "Waiting for robot...";
-      waitForAnswer(item);
+      // ✅ שלב 3: המתן לתשובה חדשה עם ts שונה
+      waitForAnswer(item, oldTs);
     }
   } catch (err) {
     updateAnswer(item, "❌ Network error: " + err.message);
     pendingItem = null;
+    btn.disabled = false;
+    btn.textContent = "Send to Robot";
   } finally {
     isSending = false;
   }
 }
 
-async function waitForAnswer(item) {
+async function waitForAnswer(item, oldTs) {
   const btn = document.getElementById("sendBtn");
   let attempts = 0;
 
   const tryFetch = async () => {
     attempts++;
-    const got = await fetchAnswer(item);
+    const got = await fetchAnswer(item, oldTs);
 
     if (got) {
       pendingItem = null;
@@ -124,7 +145,7 @@ async function waitForAnswer(item) {
       return;
     }
 
-    if (attempts >= 45) {
+    if (attempts >= 60) {
       updateAnswer(item, "⚠️ No response (timeout). Check your robot.");
       pendingItem = null;
       btn.disabled = false;
