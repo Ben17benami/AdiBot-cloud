@@ -73,11 +73,11 @@ export default async function handler(req, res) {
     });
   });
 
-  if (result && result.answer) {
+  if (result && (result.answer || result.a)) {
     return res.status(200).json({ 
       ok: true, 
-      answer: result.answer, 
-      question: result.question,
+      answer: result.answer || result.a,
+      question: result.question || result.q,
       ts: result.ts || null
     });
   } else {
