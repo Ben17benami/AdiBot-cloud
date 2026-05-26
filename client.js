@@ -32,7 +32,7 @@ function renderHistory() {
 
   conversations.forEach((conv) => {
     const div = document.createElement("div");
-    div.className = "history-item" + (conv.answer ? " open" : "");
+    div.className = "history-item" + (conv.answer && conv.answer.length <= 120 ? " open" : "");
     const fullAnswer = conv.answer ? escapeHtml(conv.answer) : '';
     const shortAnswer = conv.answer && conv.answer.length > 120 
       ? escapeHtml(conv.answer.substring(0, 120)) + '...' 
@@ -45,11 +45,10 @@ function renderHistory() {
       <div class="status">${conv.answer ? (conv.answer.length > 120 ? '👆 tap to expand' : '✅ answered') : '⏳ waiting for robot...'}</div>
     `;
     div.addEventListener("click", () => {
+      if (!conv.answer || conv.answer.length <= 120) return; // אל תפתח אם אין מה לפתוח
       div.classList.toggle("open");
       const status = div.querySelector(".status");
-      if (conv.answer && conv.answer.length > 120) {
-        status.textContent = div.classList.contains("open") ? "👆 tap to collapse" : "👆 tap to expand";
-      }
+      status.textContent = div.classList.contains("open") ? "👆 tap to collapse" : "👆 tap to expand";
     });
     list.appendChild(div);
   });
