@@ -33,12 +33,24 @@ function renderHistory() {
   conversations.forEach((conv) => {
     const div = document.createElement("div");
     div.className = "history-item" + (conv.answer ? " open" : "");
+    const fullAnswer = conv.answer ? escapeHtml(conv.answer) : '';
+    const shortAnswer = conv.answer && conv.answer.length > 120 
+      ? escapeHtml(conv.answer.substring(0, 120)) + '...' 
+      : fullAnswer;
+    
     div.innerHTML = `
       <div class="q">${escapeHtml(conv.question)}${conv.pending ? '<span class="waiting-badge">waiting...</span>' : ''}</div>
-      <div class="a">${conv.answer ? escapeHtml(conv.answer) : ''}</div>
-      <div class="status">${conv.answer ? '✅ answered' : '⏳ waiting for robot...'}</div>
+      <div class="a-short">${shortAnswer}</div>
+      <div class="a-full">${fullAnswer}</div>
+      <div class="status">${conv.answer ? (conv.answer.length > 120 ? '👆 tap to expand' : '✅ answered') : '⏳ waiting for robot...'}</div>
     `;
-    div.addEventListener("click", () => div.classList.toggle("open"));
+    div.addEventListener("click", () => {
+      div.classList.toggle("open");
+      const status = div.querySelector(".status");
+      if (conv.answer && conv.answer.length > 120) {
+        status.textContent = div.classList.contains("open") ? "👆 tap to collapse" : "👆 tap to expand";
+      }
+    });
     list.appendChild(div);
   });
 }
